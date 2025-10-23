@@ -1,0 +1,11 @@
+bookdown::html_document2:
+  toc: true
+  toc_depth: 3
+  number_sections: true
+  df_print: kable
+
+bookdown::pdf_document2:
+  latex_engine: xelatex
+  extra_dependencies:
+    caption: ["labelfont={bf}"]
+    hyperref: ["unicode=true", "breaklinks=true"]

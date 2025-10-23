@@ -1,0 +1,62 @@
+---
+title: "AI Exposure Analysis by Educational Field"
+author: "Andrea Blasco"
+date: "`r Sys.Date()`"
+bibliography: [refs.bib]
+fontsize: 12pt
+mainfont: Arial
+colorlinks: true
+citecolor: red
+csl: [https://www.zotero.org/styles/education-economics]
+header-includes: |
+    ```{=latex}
+    \usepackage{setspace}
+    \onehalfspacing
+    ```
+---
+
+# Introduction
+
+The rapid development and deployment of artificial intelligence (AI) is expected to reshape labor markets by changing the demand for specific skills and altering the composition of occupational tasks. Previous research has primarily focused on AI exposure at the occupational level [@felten2021occupational; @felten2023occupational; @gmyrek2025generative;@tolan2021measuring], but less is known about how these effects aggregate across educational fields, particularly among highly educated workers. Understanding field-specific exposure to AI is critical for anticipating labor market shifts, informing education policy, and guiding workforce planning. 
+
+This study aims to quantify the exposure of high-education fields (ISCED 5–8) to AI across the EU27 by linking standardized occupational AI exposure scores [@gmyrek2025generative] to employment distributions within educational fields. The analysis provides a comparative ranking of educational domains according to their relative AI exposure.
+
+<!-- Literature -->
+
+
+# Methods 
+
+## Data Sources
+
+Three datasets were used in this study: (i) occupational AI exposure scores (mean and standard deviation) at the 4-digit ISCO-08 level from @gmyrek2025generative; (ii) the ISCO-08 classification structure to map occupations to 2-digit groups; and (iii) a custom table from the EU Labour Force Survey (LFS) reporting employment data disaggregated by country, sex, educational field (HATFIELD), highest education level achieved (HATLEV1D), and 2-digit occupation (ISCO08_2D).
+
+## Data Analysis
+
+We quantified the exposure of high-education fields to AI across the EU27 (2020) by integrating occupational AI scores with employment distributions. AI exposure scores, comprising mean estimates and standard deviations, were obtained for 4-digit ISCO-08 occupations from @gmyrek2025generative. To aggregate these scores to 2-digit ISCO groups, we applied inverse-variance weighting, with weights equal to the reciprocal of the squared standard deviation, thereby accounting for measurement uncertainty. The ISCO-08 hierarchical structure was used to map occupational codes to descriptive titles and ensure consistency across datasets. 
+
+Employment data were drawn from the EU LFS, filtered to include only high-education individuals (ISCED 5–8), total sex, and the EU27 countries. Records with missing or total categories were excluded. Employment counts were aggregated by educational field (HATFIELD) and 2-digit occupation (ISCO08_2D), and the relative occupational composition within each field was calculated. 
+
+Field-level AI exposure was computed as the employment-weighted mean of occupation-level scores, combining both the exposure estimate and the associated precision weight.
+
+
+# Results 
+
+Figure X shows [...]
+
+<!-- ## Descriptive Analysis
+Field-level exposure: Present a ranked table of AI exposure by educational field, highlighting the highest and lowest exposed domains.
+Distribution across occupations: Summarize the contribution of major occupational groups (2-digit ISCO) to each field’s exposure.
+
+## Visualizations
+
+Bar plot: Horizontal bars showing mean AI exposure for each field, ordered by exposure score, with labels cleaned for readability.
+Treemap: Proportional representation of fields based on exposure scores to show relative size and intensity.
+
+## Possible Additional Analyses
+
+Correlation with employment size: Assess whether fields with higher employment counts tend to have higher or lower AI exposure.
+Sectoral clustering: Group fields into broad areas (STEM, social sciences, humanities) and compare average exposure.
+Uncertainty analysis: Use the aggregated standard deviations to compute confidence intervals for field-level exposure and illustrate variation.
+
+Sensitivity analysis: Test how exposure rankings change if weighting by precision is replaced by simple employment weights.
+These analyses would provide a comprehensive picture of which educational fields are most susceptible to AI-related labor market changes and allow discussion of policy implications for education and workforce development. -->
