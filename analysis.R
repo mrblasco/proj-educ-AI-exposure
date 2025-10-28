@@ -1,0 +1,343 @@
+# ---- setup, include = FALSE
+library(here)
+library(dplyr)
+library(knitr)
+library(tidyr)
+library(stringr)
+library(broom)
+library(ggplot2)
+library(eurostat)
+library(sf)
+library(countrycode)
+
+debug <- TRUE
+opts_chunk$set(
+    error = debug,
+    echo = FALSE,
+    message = FALSE,
+    warning = FALSE,
+    comment = ""
+)
+
+theme_set(theme_minimal(base_size = 13, base_family = "Helvetica"))
+theme_update(
+    plot.title.position = "plot",
+    plot.caption = element_text(size = 9, hjust = 1, color = "grey40"),
+    panel.grid.major.y = element_line(linetype = 3),
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_blank(),
+    plot.margin = margin(1, 1, 1, 1, unit = "lines"),
+    legend.position = "none"
+)
+
+src_caption <- "Source: ESJS2 dataset and Gmyrek et al. 2025"
+
+# ---- funs ----
+
+shorten_field_b <- function(x) {
+    case_when(
+        grepl("Generic", x) ~ "Generic",
+        grepl("Arts.*humanities", x) ~ "Arts & Humanities",
+        grepl("Social sciences", x) ~ "Soc. Sci., Jour. & Inf.",
+        grepl("Business", x) ~ "Business & Law",
+        grepl("Natural sciences", x) ~ "Nat. Sci., Math & Stat",
+        grepl("^Information", x) ~ "ICTs",
+        grepl("Engineer", x) ~ "Eng., Manuf. & Const",
+        grepl("Agriculture", x) ~ "Agri., For., Fish. & Vet",
+        grepl("Services", x) ~ "Services",
+        grepl("Health", x) ~ "Health and welfare",
+        is.na(x) ~ "Unknown",
+        TRUE ~ x
+    )
+}
+
+
+# ----- loda data, include = FALSE
+
+job_survey <- readRDS("data/job_survey_clean.rds")
+job_ai <- readRDS("data/scores_clean_2025.rds")
+
+# ---- process data, include = FALSE
+
+job_ai <- job_ai %>%
+    mutate(
+        job_id = substr(job_id, 1, 2),
+        job_level = nchar(job_id)
+    )
+
+job_survey <- job_survey %>%
+    mutate(
+        weight = as.numeric(as.character(weight)),
+        educ_1d = case_when(
+            grepl("[5678]", educ) ~ "High (ISCED 5-8)",
+            TRUE ~ "Other"
+        )
+    )
+
+job_survey <- job_survey %>%
+    filter(!is.na(job_title))
+
+job_survey <- job_survey %>%
+    filter(!field_n %in% c("No answer", "Don't know"))
+
+job_counts <- job_survey %>%
+    count(job_id, field_b, field_n, country, sex, wt = weight)
+
+job_counts <- job_counts %>% 
+    filter(!job_id %in% c("01", "02", "03"))
+
+# ---- descriptives
+
+kable(head(job_ai), caption = "Scores")
+kable(head(job_survey), caption = "Survey")
+kable(head(job_counts))
+
+# ---- regression
+
+fit_score <- lm(score_2025 ~ job_id, job_ai)
+
+job_counts$predicted_score <- predict(fit_score, job_counts)
+
+# --- aggregte-by-field
+
+df_field <- job_counts %>%
+    mutate(weight = n / sum(n), .by = c(country, sex)) %>%
+    summarise(
+        mean_pred_score = weighted.mean(predicted_score, weight),
+        .by = c(field_b, field_n)
+    ) %>%
+    mutate(
+        zscore = scale(mean_pred_score)
+    )
+
+# ---- tbl-by-field
+tbl_field <- df_field %>%
+    arrange(desc(zscore)) %>%
+    mutate(zscore = sprintf("%.2f", zscore)) %>%
+    select(
+        Field = field_n,
+        "Z-score" = zscore,
+    ) %>%
+    kable(
+        caption = "Z-scores by Field of Education in the EU"
+    )
+
+# ---- viz-field, fig.asp = 1
+
+df_field <- df_field %>% 
+    filter(!is.na(field_n))
+
+plot_field <- df_field %>%
+    ggplot(
+        aes(
+            x = reorder(field_n, zscore),
+            y = zscore,
+            fill = zscore
+        )
+    ) +
+    geom_col(width = 0.7) +
+    coord_flip() +
+    scale_fill_gradient2(
+        low = "#4575b4", mid = "grey90", high = "#d73027",
+        midpoint = 0,
+        name = "Z-score"
+    ) +
+    geom_text(
+        aes(label = sprintf("%.2f", zscore)),
+        hjust = ifelse(df_field$zscore > 0, -0.1, 1.1),
+        color = "black",
+        size = 3
+    ) +
+    labs(
+        title = "Mean Predicted AI Exposure by Field",
+        subtitle = "Z-scores centered at 0",
+        caption = src_caption,
+    ) +
+    theme(
+        plot.title.position = "plot",
+        panel.grid.major.y = element_line(linetype = 3),
+        panel.grid.minor = element_blank(),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none"
+    ) +
+    ylim(min(df_field$zscore) - 0.3, max(df_field$zscore) + 0.3)
+
+
+print(plot_field)
+
+# ---- viz-sex, fig.asp = 1
+
+df_sex <- job_counts %>%
+    mutate(weight = n / sum(n), .by = c(country, sex)) %>%
+    dplyr::filter(sex %in% c("Male", "Female")) %>%
+    summarise(
+        mean_predicted_score = weighted.mean(
+            predicted_score, weight
+        ),
+        obs = sum(n),
+        .by = c(field_n, sex)
+    ) %>%
+    mutate(
+        zscore = scale(mean_predicted_score),
+        .by = sex
+    )
+
+plot_sex <- df_sex %>%
+    mutate(
+        zscore_diff = zscore[sex == "Female"] - zscore[sex == "Male"],
+        .by = field_n
+    ) %>%
+    na.omit() %>%
+    ggplot(
+        aes(
+            x = zscore,
+            y = reorder(field_n, zscore_diff),
+            fill = sex,
+            shape = sex,
+            color = zscore_diff,
+            group = reorder(field_n, zscore_diff),
+        )
+    ) +
+    scale_fill_brewer(palette = "Set1") +
+    scale_color_gradient2(
+        low = "#4575b4", mid = "grey90", high = "#d73027",
+        midpoint = 0,
+        name = "Sex Diff."
+    ) +
+    ggplot2::coord_cartesian(clip = "off") +
+    scale_shape_manual(values = c(21, 22)) +
+    geom_line(linewidth = 2, alpha = 0.5) +
+    geom_point(size = 3, color = "gray80") + 
+    theme(legend.position = "bottom") + 
+    labs(
+        caption = src_caption,
+    )
+
+print(plot_sex)
+
+plot_sex_bars <- df_sex %>%
+    ggplot(
+        aes(
+            x = reorder(field_n, zscore),
+            y = zscore,
+            fill = zscore
+        )
+    ) +
+    facet_grid(~sex) +
+    geom_col(width = 0.7) +
+    coord_flip() +
+    scale_fill_gradient2(
+        low = "#4575b4", mid = "grey90", high = "#d73027",
+        midpoint = 0,
+        name = "Z-score"
+    ) +
+    geom_text(
+        aes(label = sprintf("%.2f", zscore)),
+        hjust = ifelse(df_sex$zscore > 0, -0.1, 1.1),
+        color = "black",
+        size = 3
+    ) +
+    labs(
+        title = "Mean Predicted AI Exposure by Field",
+        subtitle = "Z-scores centered at 0",
+        caption = src_caption,
+    ) +
+    ylim(min(df_sex$zscore) - 0.3, max(df_sex$zscore) + 0.3)
+
+print(plot_sex_bars)
+
+# ----- maps, fig.asp = 1.5, fig.width = 9
+
+df_field_b <- job_counts %>%
+    mutate(weight = n / sum(n), .by = c(country, sex)) %>%
+    summarise(
+        mean_pred_score = weighted.mean(predicted_score, weight, na.rm = TRUE),
+        .by = c(country, field_b)
+    ) %>%
+    mutate(
+        zscore = scale(mean_pred_score),
+        .by = country
+    ) %>%
+    mutate(
+        mean_zscore_field = mean(zscore, na.rm = TRUE),
+        .by = field_b
+    )
+
+df_field_b %>%
+    arrange(country, zscore) %>%
+    mutate(
+        country = ifelse(row_number() == 1, as.character(country), ""),
+        .by = country
+    ) %>%
+    select(
+        Country = country,
+        Field = field_b,
+        "Z-score by country" = zscore,
+    ) %>%
+    kable(
+        caption = "Exposure by Field (Z-score by country)"
+    )
+
+
+eu_map <- get_eurostat_geospatial(
+    output_class = "sf",
+    resolution = "20",
+    nuts_level = 0
+)
+
+map_data <- eu_map %>%
+    mutate(
+        country = countrycode(CNTR_CODE, "eurostat", "country.name")
+    ) %>%
+    left_join(df_field_b, by = "country")
+
+plot_map <- map_data %>%
+    mutate(field_b_short = shorten_field_b(field_b)) %>%
+    ggplot() +
+    facet_wrap(~reorder(field_b_short, -mean_zscore_field)) +
+    geom_sf(
+        aes(fill = zscore),
+        color = "grey95",
+        size = 0.15
+    ) +
+    scale_fill_viridis_c(
+        option = "magma", 
+        na.value = "grey95", 
+        name = "AI exposure",
+        limits = c(-3, 3),
+        breaks = seq(-3, 3, 1),
+        labels = scales::number_format(accuracy = 0.1)
+    ) +
+    labs(
+        title = "Predicted Mean Score by Country (High Education Level)",
+        subtitle = "Eurostat NUTS 0 regions",
+        caption = src_caption
+    ) +
+    coord_sf(
+        xlim = c(-10, 35), 
+        ylim = c(34, 72), 
+        expand = FALSE
+    ) +
+    theme_minimal(base_family = "Helvetica") +
+    theme(
+        plot.margin = margin(10, 10, 10, 10),
+        plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 12, hjust = 0.5, margin = margin(b = 8)),
+        plot.caption = element_text(size = 9, hjust = 1, color = "grey40"),
+        legend.position = "bottom",
+        legend.key.width = unit(2, "cm"),
+        legend.title = element_text(size = 10, face = "bold"),
+        legend.text = element_text(size = 9),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        strip.text = element_text(face = "bold"),
+        panel.grid = element_blank(),
+        panel.background = element_rect(fill = "white", color = NA)
+    )
+
+print(plot_map)
+
+# ---- Info, include = !debug
+
+sessionInfo()
