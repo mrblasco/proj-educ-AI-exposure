@@ -1,62 +1,118 @@
 ---
-title: "AI Exposure Analysis by Educational Field"
-author: "Andrea Blasco"
-date: "`r Sys.Date()`"
-bibliography: [refs.bib]
+title: "Exposure to Generative AI Across Educational Fields in the EU"
+author: 
+    - Andrea Blasco^[European Commission, mJoint Research Centre, andrea.blasco@ec.europa.eu]
+    - TBA
+date: "This version: `r Sys.Date()`"
+papersize: a4
+geometry: "margin=.5in"
 fontsize: 12pt
-mainfont: Arial
+mainfont: Helvetica
+linestretch: 1.5
 colorlinks: true
-citecolor: red
+linkcolor: "blue"
+citecolor: "darkred"
+urlcolor: "blue"
+bibliography: [refs.bib]
 csl: [https://www.zotero.org/styles/education-economics]
 header-includes: |
     ```{=latex}
-    \usepackage{setspace}
-    \onehalfspacing
+    \usepackage{endfloat}
+    \usepackage{microtype}         % Better typographic spacing
+    \usepackage{parskip}
+    \setlength{\parindent}{0pt}    % Removes paragraph indentation
     ```
 ---
 
+```{r setup, include = FALSE}
+library(dplyr)
+library(ggplot2)
+
+is_pdf <- knitr::is_latex_output()
+knitr::opts_chunk$set(
+    error = TRUE,
+    echo = FALSE,
+    dev = ifelse(is_pdf, "pdf", "png")
+)
+```
+
 # Introduction
 
-The rapid development and deployment of artificial intelligence (AI) is expected to reshape labor markets by changing the demand for specific skills and altering the composition of occupational tasks. Previous research has primarily focused on AI exposure at the occupational level [@felten2021occupational; @felten2023occupational; @gmyrek2025generative;@tolan2021measuring], but less is known about how these effects aggregate across educational fields, particularly among highly educated workers. Understanding field-specific exposure to AI is critical for anticipating labor market shifts, informing education policy, and guiding workforce planning. 
+The rapid development and deployment of artificial intelligence (AI) is expected to reshape labor markets by changing the demand for specific skills and altering the composition of occupational tasks. Previous research has primarily focused on AI exposure at the occupational level [@felten2021occupational; @tolan2021measuring; @felten2023occupational; @gmyrek2025generative], but less is known about how these effects aggregate across educational fields, particularly among highly educated workers. Are professions carried out by STEM graduates, such as engineers or computer scientists, more exposed to generative AI transformations than those of students graduating from non-STEM schools? Understanding field-specific exposure to AI is critical for anticipating labor market shifts, informing education policy, and guiding workforce planning.
 
-This study aims to quantify the exposure of high-education fields (ISCED 5–8) to AI across the EU27 by linking standardized occupational AI exposure scores [@gmyrek2025generative] to employment distributions within educational fields. The analysis provides a comparative ranking of educational domains according to their relative AI exposure.
+This study aims to quantify the exposure of high-education fields (ISCED 5–8) to AI across the EU27 by linking standardised occupational AI exposure scores [@gmyrek2025generative] to employment distributions within educational fields from the European Skills and Jobs Survey [@cedefop2021esjs]. The analysis provides a comparative ranking of educational domains according to their relative AI exposure.
 
 <!-- Literature -->
 
+@conzelmann2023skills survey nationally representative of the use of generative AI at home and work in the US, showing that about 60% of US population uses generative AI for work in 2024.
 
-# Methods 
+@timmerman2025educational explores how generative AI influences postsecondary education and their students in the United States. It finds that college majors are impacted differently, with STEM-related field having higher exposure than non-STEM ons. This is consisetn with (Bick 2024) early study on adoption of gen AI at work; and Mohnen and lee 2024 on the demand for AI skills increased from math et al. 
 
-## Data Sources
+@timmerman2025educational also finds that hispanics are more impacted and institutions most affected are those Liberal Arts. 
 
-Three datasets were used in this study: (i) occupational AI exposure scores (mean and standard deviation) at the 4-digit ISCO-08 level from @gmyrek2025generative; (ii) the ISCO-08 classification structure to map occupations to 2-digit groups; and (iii) a custom table from the EU Labour Force Survey (LFS) reporting employment data disaggregated by country, sex, educational field (HATFIELD), highest education level achieved (HATLEV1D), and 2-digit occupation (ISCO08_2D).
+@grosz2022postsecondary shows that postsecondary programs respond to market shifts. 
 
-## Data Analysis
+# Data and Methods
 
-We quantified the exposure of high-education fields to AI across the EU27 (2020) by integrating occupational AI scores with employment distributions. AI exposure scores, comprising mean estimates and standard deviations, were obtained for 4-digit ISCO-08 occupations from @gmyrek2025generative. To aggregate these scores to 2-digit ISCO groups, we applied inverse-variance weighting, with weights equal to the reciprocal of the squared standard deviation, thereby accounting for measurement uncertainty. The ISCO-08 hierarchical structure was used to map occupational codes to descriptive titles and ensure consistency across datasets. 
+## Generative AI Occupational Exposure Index
 
-Employment data were drawn from the EU LFS, filtered to include only high-education individuals (ISCED 5–8), total sex, and the EU27 countries. Records with missing or total categories were excluded. Employment counts were aggregated by educational field (HATFIELD) and 2-digit occupation (ISCO08_2D), and the relative occupational composition within each field was calculated. 
+We used the International Labour Organisation (ILO)'s global exposure to generative AI index [@gmyrek2025generative]. This uses task descriptions from 4-digit International Standard Classifciation of Occupations (ISCO-08) to estimate task-level occupational exposure. Measures of task-level occupational exposure are obtained by combining GPT-4 models and human annotations. Specifically, @gmyrek2025generative surveyed 1640 people on 30 000 job-related tasks from the Poland's national 6-digit classification of occupations. It then combined survey results with automatic annotations obtained by GPT-4 models.
 
-Field-level AI exposure was computed as the employment-weighted mean of occupation-level scores, combining both the exposure estimate and the associated precision weight.
+This approach to measure generative AI occupational exposure draws from pineering work by @felten2021occupational and @eloundou2024gpts, which is now established as the most common method.
 
+## European Skills and Jobs Survey (ESJS)
+
+We matched the occupational exposure with survey data from occupations for highly skilled individuals obtained from the ESJS, the second wave carried out in 2021 [@cedefop2021esjs]. This survey includes information from 46 000 adult employees from 35 countries, including all the EU Member States. The survey includes questions on sociodemographics, job characteristics,  and intial education, including the highest education degree achieve and, when applies, the field major.  Jobs are then manually coded into ISCO-08 descriptions, allowing us to match with the ILO's global generative AI occupational exposure index described above. Academic fields are coded into standard ISCED (narrow) codes.
+
+## Data Analysis 
+
+Following the approach of @timmerman2025educational, we implemented a post-stratification framework to estimate occupational generative AI exposure across academic fields. First, we used OLS regression to estimate the mean generative AI score for all professions at the ISCO-08 level 2. Next, leveraging data from ESJS, we calculated the distribution of employees within each profession by highest educational attainment and corresponding field of study (e.g., the share of computer science graduates within a given profession). We then combined these shares with the OLS-estimated scores to predict the occupational generative AI score conditional on educational background and field. Finally, we aggregated the predicted scores by differnet categories (e.g., country, academic field) to conduct cross-national and field-level analyses.
 
 # Results 
 
-Figure X shows [...]
+```{r, include = FALSE}
+source("analysis.R", local = knitr::knit_global())
+```
 
-<!-- ## Descriptive Analysis
-Field-level exposure: Present a ranked table of AI exposure by educational field, highlighting the highest and lowest exposed domains.
-Distribution across occupations: Summarize the contribution of major occupational groups (2-digit ISCO) to each field’s exposure.
+Figure \@ref(fig:map) illustrates the generative AI exposures z-scored by country for broad fields of education (ISCED-F level 1). 
 
-## Visualizations
+In most countries, fields like *Business & Law* or *Social sciences, journalism, and information*, tend to have the highest relative generative AI exposure, meaning these areas are more gen-AI-exposed compared to other fields within the same country. *Arts & humanities* also show high relative exposure in several countries, particularly in Northern and Western Europe (e.g., Norway, Belgium, Austria), while fields like *Health & welfare*, *Agriculture*, and *Services* are consistently lower within each country, indicating they are less exposed to generative AI relative to other domestic fields. *Natural sciences, mathematics and statistics* show mixed patterns, sometimes moderately high (e.g., Poland) but other times below average (e.g., Finland, Germany, Czechia). Fields such as *Engineering and manufacturing* or *Education* are often below average. Overall, this shows a consistent pattern where knowledge-intensive, analytical, and social-oriented fields dominate AI exposure within countries, while practical, service-oriented, and traditionally manual sectors are less affected, even if the absolute level of AI adoption varies across countries.
 
-Bar plot: Horizontal bars showing mean AI exposure for each field, ordered by exposure score, with labels cleaned for readability.
-Treemap: Proportional representation of fields based on exposure scores to show relative size and intensity.
+```{r map, fig.cap = "Generative AI exposure across academic fields in the EU", fig.asp = 1.25, fig.width = 8}
+plot_map + theme(plot.title = element_blank(), plot.subtitle = element_blank())
+```
 
-## Possible Additional Analyses
+Following the analysis at the macro level, we examine differences in the z-scored exposured across narrowly defined fields of education (ISCED-F level 2), providing a more detailed view of the exposure. 
 
-Correlation with employment size: Assess whether fields with higher employment counts tend to have higher or lower AI exposure.
-Sectoral clustering: Group fields into broad areas (STEM, social sciences, humanities) and compare average exposure.
-Uncertainty analysis: Use the aggregated standard deviations to compute confidence intervals for field-level exposure and illustrate variation.
+Figure \@ref(fig:narrow) illustrates that fields in the social sciences, business, and humanities exhibit the highest AI exposure, with social and behavioural sciences leading at a z-score of 2.01, followed by business and administration (1.74) and humanities excluding languages (1.54). Journalism, languages, and biological sciences also show above-average exposure, ranging from 1.27 to 1.17. Fields such as ICTs, mathematics, and engineering have moderate exposure, with z-scores around 0.31–0.91. In contrast, arts, personal skills, and basic education programs are near neutral in AI exposure, while sectors like health, agriculture, welfare, and manufacturing display significantly lower exposure, with fisheries being the least exposed at –1.58. Overall, the results suggest that generative AI is most influential in knowledge-intensive, analytical, and social-oriented fields, while practical, manual, and service-oriented disciplines show comparatively low exposure.
 
-Sensitivity analysis: Test how exposure rankings change if weighting by precision is replaced by simple employment weights.
-These analyses would provide a comprehensive picture of which educational fields are most susceptible to AI-related labor market changes and allow discussion of policy implications for education and workforce development. -->
+```{r narrow, fig.cap = "Generative AI occupational exposure across academic fields in the EU", fig.asp = 1, fig.width = 7}
+plot_field + theme(plot.title = element_blank(), plot.subtitle = element_blank())
+```
+
+
+Figure \@ref(fig:gender) illustrates the exposure of fields of education by gender. 
+
+```{r gender, fig.cap = "This is the caption", fig.asp = 1, fig.width = 7}
+plot_sex + theme(plot.title = element_blank(), plot.subtitle = element_blank())
+```
+
+
+# Discussion
+
+- 
+
+# References
+
+# Appendix
+
+```{r, echo = FALSE}
+kable(
+    head(job_ai),
+    caption = paste(
+        "Top rows of the ILO's Generative AI Occupational",
+        "Scores by  job task, occupation ISCO-08 code, and job level."
+    ),
+    booktabs = TRUE
+)
+```

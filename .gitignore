@@ -1,4 +1,13 @@
+.vscode/
 .DS_Store
 
-data-raw/CEDEFOP*
-data/cedefop*
+*.ttt
+*.fff
+*.lot
+*.log
+
+data-raw/*
+data/*
+
+*_cache/
+*_files/

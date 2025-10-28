@@ -1,5 +1,4 @@
-all: rds
-
+all: view
 
 # --- report 
 
@@ -18,16 +17,8 @@ analysis/analysis.html : analysis/analysis.R
 
 # --- data 
 
-rds: data/scores_clean_2025.rds data/cedefop_esjs2_clean.rds data/eu_lfs_clean.rds
-
-data/scores_clean_2025.rds : scripts/01_import_ai_task_scores.R
+import: scripts/01_import_data.R
 	Rscript $<
 
-data/cedefop_esjs2_clean.rds : scripts/04_import_cedefop_esjs2.R
-	Rscript $<
-
-data/eu_lfs_clean.rds : scripts/03_import_eu_lfs.R
-	Rscript $<
-
-view:
-	open -a Skim report.pdf
+view: report.pdf
+	open -a Skim $<
