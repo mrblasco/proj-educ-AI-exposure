@@ -1,3 +1,20 @@
+recode_isco_title <- function(x) {
+    dplyr::case_match(
+        x,
+        "1" ~ "Managers",
+        "2" ~ "Professionals",
+        "3" ~ "Technicians and Associate Professionals",
+        "4" ~ "Clerical Support Workers",
+        "5" ~ "Service and Sales Workers",
+        "6" ~ "Skilled Agricultural, Forestry and Fishery Workers",
+        "7" ~ "Craft and Related Trades Workers",
+        "8" ~ "Plant and Machine Operators, and Assemblers",
+        "9" ~ "Elementary Occupations",
+        "0" ~ "Armed Forces Occupations",
+    )
+}
+
+
 
 recode_isced_field <- function(field) {
     dplyr::case_match(

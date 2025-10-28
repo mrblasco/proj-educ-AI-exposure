@@ -9,6 +9,7 @@ library(ggplot2)
 library(eurostat)
 library(sf)
 library(countrycode)
+library(openxlsx)
 
 debug <- TRUE
 opts_chunk$set(
@@ -33,7 +34,7 @@ theme_update(
 
 src_caption <- "Source: ESJS2 dataset and Gmyrek et al. 2025"
 
-# ---- funs ----
+# ---- funs ---------------------------------------------
 
 shorten_field_b <- function(x) {
     case_when(
@@ -53,12 +54,10 @@ shorten_field_b <- function(x) {
 }
 
 
-# ----- loda data, include = FALSE
+# ---- data, include = FALSE ----------------------------------------
 
-job_survey <- readRDS("data/job_survey_clean.rds")
+job_survey <- readRDS("data/skills_survey_clean.rds")
 job_ai <- readRDS("data/scores_clean_2025.rds")
-
-# ---- process data, include = FALSE
 
 job_ai <- job_ai %>%
     mutate(
@@ -87,48 +86,85 @@ job_counts <- job_survey %>%
 job_counts <- job_counts %>% 
     filter(!job_id %in% c("01", "02", "03"))
 
-# ---- descriptives
+# ---- descriptives ----------------------------------------
 
-kable(head(job_ai), caption = "Scores")
 kable(head(job_survey), caption = "Survey")
 kable(head(job_counts))
 
-# ---- regression
+# ---- regression ----------------------------------------
 
 fit_score <- lm(score_2025 ~ job_id, job_ai)
 
 job_counts$predicted_score <- predict(fit_score, job_counts)
 
-# --- aggregte-by-field
+# ---- aggregate data ----------------------------------------
+
+eu27_codes <- c("AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR",
+                "DE","GR","HU","IE","IT","LV","LT","LU","MT","NL",
+                "PL","PT","RO","SK","SI","ES","SE")
+
+eu27 <- countrycode(eu27_codes, origin = "iso2c", "country.name")
+
+job_counts_eu27 <- job_counts %>%
+    filter(country %in% eu27) %>%
+    mutate(country = "EU27")
+
+job_counts <- job_counts %>%
+    bind_rows(job_counts_eu27) %>%
+    mutate(weight = n / sum(n), .by = c(country, sex))
 
 df_field <- job_counts %>%
-    mutate(weight = n / sum(n), .by = c(country, sex)) %>%
     summarise(
         mean_pred_score = weighted.mean(predicted_score, weight),
-        .by = c(field_b, field_n)
+        .by = c(country, field_b, field_n)
     ) %>%
     mutate(
-        zscore = scale(mean_pred_score)
+        zscore = scale(mean_pred_score),
+        .by = country
     )
 
-# ---- tbl-by-field
-tbl_field <- df_field %>%
-    arrange(desc(zscore)) %>%
-    mutate(zscore = sprintf("%.2f", zscore)) %>%
-    select(
-        Field = field_n,
-        "Z-score" = zscore,
+df_sex <- job_counts %>%
+    dplyr::filter(
+        sex %in% c("Male", "Female"),
+        country == "EU27",
     ) %>%
-    kable(
-        caption = "Z-scores by Field of Education in the EU"
+    summarise(
+        mean_predicted_score = weighted.mean(
+            predicted_score, weight
+        ),
+        .by = c(field_n, sex)
+    ) %>%
+    mutate(
+        zscore = scale(mean_predicted_score),
+        .by = sex
     )
 
-# ---- viz-field, fig.asp = 1
+tbl_field <- df_field %>%
+    filter(!is.na(field_n), !is.na(zscore)) %>%
+    arrange(country) %>%
+    mutate(zscore = round(zscore, 2)) %>%
+    select(Field = field_n, country, zscore) %>%
+    pivot_wider(
+        names_from = country,
+        values_from = zscore,
+    )
 
-df_field <- df_field %>% 
-    filter(!is.na(field_n))
 
-plot_field <- df_field %>%
+tbl_sex <- df_sex %>% 
+    mutate(zscore = round(zscore, 2)) %>%
+    select(Field = field_n, sex, zscore) %>%
+    pivot_wider(
+        names_from = sex,
+        values_from = zscore,
+    )
+
+
+# ---- viz-field, fig.asp = 1 ----------------------------------------
+
+df_field_eu27 <- df_field %>%
+    filter(!is.na(field_n), country == "EU27")
+
+plot_field <- df_field_eu27 %>%
     ggplot(
         aes(
             x = reorder(field_n, zscore),
@@ -145,7 +181,7 @@ plot_field <- df_field %>%
     ) +
     geom_text(
         aes(label = sprintf("%.2f", zscore)),
-        hjust = ifelse(df_field$zscore > 0, -0.1, 1.1),
+        hjust = ifelse(df_field_eu27$zscore > 0, -0.1, 1.1),
         color = "black",
         size = 3
     ) +
@@ -161,27 +197,11 @@ plot_field <- df_field %>%
         axis.text.y = element_text(size = 10),
         legend.position = "none"
     ) +
-    ylim(min(df_field$zscore) - 0.3, max(df_field$zscore) + 0.3)
-
+    ylim(min(df_field_eu27$zscore) - 0.3, max(df_field_eu27$zscore) + 0.3)
 
 print(plot_field)
 
-# ---- viz-sex, fig.asp = 1
-
-df_sex <- job_counts %>%
-    mutate(weight = n / sum(n), .by = c(country, sex)) %>%
-    dplyr::filter(sex %in% c("Male", "Female")) %>%
-    summarise(
-        mean_predicted_score = weighted.mean(
-            predicted_score, weight
-        ),
-        obs = sum(n),
-        .by = c(field_n, sex)
-    ) %>%
-    mutate(
-        zscore = scale(mean_predicted_score),
-        .by = sex
-    )
+# ---- viz-sex, fig.asp = 1 ----------------------------------------
 
 plot_sex <- df_sex %>%
     mutate(
@@ -247,7 +267,7 @@ plot_sex_bars <- df_sex %>%
 
 print(plot_sex_bars)
 
-# ----- maps, fig.asp = 1.5, fig.width = 9
+# ----- maps, fig.asp = 1.5, fig.width = 9 ----------------------------------------
 
 df_field_b <- job_counts %>%
     mutate(weight = n / sum(n), .by = c(country, sex)) %>%
@@ -264,19 +284,17 @@ df_field_b <- job_counts %>%
         .by = field_b
     )
 
-df_field_b %>%
-    arrange(country, zscore) %>%
+tbl_country <- df_field_b %>%
+    filter(!is.na(zscore), !is.na(field_b)) %>%
     mutate(
-        country = ifelse(row_number() == 1, as.character(country), ""),
-        .by = country
+        zscore = round(zscore, 2), 
+        country = countrycode(country, "country.name", "eurostat"),
     ) %>%
-    select(
-        Country = country,
-        Field = field_b,
-        "Z-score by country" = zscore,
-    ) %>%
-    kable(
-        caption = "Exposure by Field (Z-score by country)"
+    arrange(country) %>%
+    select(country, zscore, Field = field_b) %>%
+    pivot_wider(
+        names_from = country,
+        values_from = zscore
     )
 
 
@@ -338,6 +356,21 @@ plot_map <- map_data %>%
 
 print(plot_map)
 
-# ---- Info, include = !debug
+
+# ---- Info, include = !debug ----------------------------------------
 
 sessionInfo()
+
+
+# ---- Export tbl ----------------------------------------
+
+wb <- createWorkbook()
+
+tbl_names <- ls(pattern = "^tbl_")
+tbl_list <- mget(ls(pattern = "^tbl_"), .GlobalEnv)
+
+for (nm in names(tbl_list)) {
+    addWorksheet(wb, nm)
+    writeData(wb, nm, tbl_list[[nm]])
+}
+saveWorkbook(wb, "tbl_export.xlsx", overwrite = TRUE)

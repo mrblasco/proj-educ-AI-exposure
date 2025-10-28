@@ -76,6 +76,8 @@ job_survey <- raw_esjs %>%
         field_b = E_FIELDB,
         field_n = E_FIELDN,
         job_title = B_ISCOD2,
+        pay = F_PAYBANDALL,
+        displace = F_DISPLJOB,
         weight = Pan_Country_weight_v2
     ) %>%
     mutate(

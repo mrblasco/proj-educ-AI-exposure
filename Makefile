@@ -1,8 +1,8 @@
-all: view
+all: report.pdf view
 
 # --- report 
 
-report.pdf : report.Rmd refs.bib _output.yml
+report.pdf : report.Rmd refs.bib _output.yml analysis.R
 	Rscript -e "rmarkdown::render(\
 		input = '$<',\
 		output_file = '$@',\
@@ -12,7 +12,8 @@ report.pdf : report.Rmd refs.bib _output.yml
 
 # --- analysis
 
-analysis/analysis.html : analysis/analysis.R
+output/analysis.html : analysis.R
+	mkdir output
 	Rscript -e "rmarkdown::render('$<')"
 
 # --- data 
@@ -20,5 +21,5 @@ analysis/analysis.html : analysis/analysis.R
 import: scripts/01_import_data.R
 	Rscript $<
 
-view: report.pdf
-	open -a Skim $<
+view: 
+	open -a Skim report.pdf
