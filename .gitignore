@@ -6,6 +6,7 @@
 *.lot
 *.log
 
+renv/
 data-raw/*
 data/*
 

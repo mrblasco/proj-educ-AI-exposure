@@ -13,8 +13,10 @@ colorlinks: true
 linkcolor: "blue"
 citecolor: "darkred"
 urlcolor: "blue"
-bibliography: [refs.bib]
+bibliography: "`r here::here('refs.bib')`"
+
 csl: [https://www.zotero.org/styles/education-economics]
+
 header-includes: |
     ```{=latex}
     %\usepackage{endfloat}
@@ -41,7 +43,7 @@ knitr::opts_chunk$set(
 
 The rapid development and deployment of artificial intelligence (AI) is expected to reshape labor markets by changing the demand for specific skills and altering the composition of occupational tasks. Previous research has primarily focused on AI exposure at the occupational level [@felten2021occupational; @tolan2021measuring; @felten2023occupational; @gmyrek2025generative], but less is known about how these effects aggregate across educational fields, particularly among highly educated workers. Are professions carried out by STEM graduates, such as engineers or computer scientists, more exposed to generative AI transformations than those of students graduating from non-STEM schools? Understanding field-specific exposure to AI is critical for anticipating labor market shifts, informing education policy, and guiding workforce planning.
 
-This study aims to quantify the exposure of high-education fields (ISCED 5–8) to AI across the EU27 by linking standardised occupational AI exposure scores [@gmyrek2025generative] to employment distributions within educational fields from the European Skills and Jobs Survey [@cedefop2021esjs]. The analysis provides a comparative ranking of educational domains according to their relative AI exposure.
+This study aims to quantify the exposure of high-education fields (ISCED 5 - 8) to AI across the EU27 by linking standardised occupational AI exposure scores [@gmyrek2025generative] to employment distributions within educational fields from the European Skills and Jobs Survey [@cedefop2021esjs]. The analysis provides a comparative ranking of educational domains according to their relative AI exposure.
 
 <!-- Literature -->
 
@@ -71,7 +73,7 @@ Following the approach of @timmerman2025educational, we implemented a post-strat
 
 # Results 
 
-```{r, include = FALSE}
+```{r analysis, include = FALSE}
 source("analysis.R", local = knitr::knit_global())
 ```
 

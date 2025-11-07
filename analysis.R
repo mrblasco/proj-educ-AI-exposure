@@ -364,13 +364,13 @@ sessionInfo()
 
 # ---- Export tbl ----------------------------------------
 
-wb <- createWorkbook()
-
-tbl_names <- ls(pattern = "^tbl_")
-tbl_list <- mget(ls(pattern = "^tbl_"), .GlobalEnv)
-
-for (nm in names(tbl_list)) {
-    addWorksheet(wb, nm)
-    writeData(wb, nm, tbl_list[[nm]])
-}
-saveWorkbook(wb, "tbl_export.xlsx", overwrite = TRUE)
+try({
+    wb <- createWorkbook()
+    tbl_names <- ls(pattern = "^tbl_")
+    tbl_list <- mget(ls(pattern = "^tbl_"), .GlobalEnv)
+    for (nm in names(tbl_list)) {
+        addWorksheet(wb, nm)
+        writeData(wb, nm, tbl_list[[nm]])
+    }
+    saveWorkbook(wb, "tbl_export.xlsx", overwrite = TRUE)
+})
