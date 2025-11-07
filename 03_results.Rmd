@@ -1,0 +1,28 @@
+# Results 
+
+```{r analysis, include = FALSE}
+source("analysis.R", local = knitr::knit_global())
+```
+
+Figure \@ref(fig:map) illustrates the generative AI exposures z-scored by country for broad fields of education (ISCED-F level 1). 
+
+In most countries, fields like *Business & Law* or *Social sciences, journalism, and information*, tend to have the highest relative generative AI exposure, meaning these areas are more gen-AI-exposed compared to other fields within the same country. *Arts & humanities* also show high relative exposure in several countries, particularly in Northern and Western Europe (e.g., Norway, Belgium, Austria), while fields like *Health & welfare*, *Agriculture*, and *Services* are consistently lower within each country, indicating they are less exposed to generative AI relative to other domestic fields. *Natural sciences, mathematics and statistics* show mixed patterns, sometimes moderately high (e.g., Poland) but other times below average (e.g., Finland, Germany, Czechia). Fields such as *Engineering and manufacturing* or *Education* are often below average. Overall, this shows a consistent pattern where knowledge-intensive, analytical, and social-oriented fields dominate AI exposure within countries, while practical, service-oriented, and traditionally manual sectors are less affected, even if the absolute level of AI adoption varies across countries.
+
+```{r map, fig.cap = "Generative AI exposure across academic fields in the EU", fig.asp = 1.25, fig.width = 8}
+plot_map + theme(plot.title = element_blank(), plot.subtitle = element_blank())
+```
+
+Following the analysis at the macro level, we examine differences in the z-scored exposured across narrowly defined fields of education (ISCED-F level 2), providing a more detailed view of the exposure. 
+
+Figure \@ref(fig:narrow) illustrates that fields in the social sciences, business, and humanities exhibit the highest AI exposure, with social and behavioural sciences leading at a z-score of 2.01, followed by business and administration (1.74) and humanities excluding languages (1.54). Journalism, languages, and biological sciences also show above-average exposure, ranging from 1.27 to 1.17. Fields such as ICTs, mathematics, and engineering have moderate exposure, with z-scores around 0.31–0.91. In contrast, arts, personal skills, and basic education programs are near neutral in AI exposure, while sectors like health, agriculture, welfare, and manufacturing display significantly lower exposure, with fisheries being the least exposed at –1.58. Overall, the results suggest that generative AI is most influential in knowledge-intensive, analytical, and social-oriented fields, while practical, manual, and service-oriented disciplines show comparatively low exposure.
+
+```{r narrow, fig.cap = "Generative AI occupational exposure across academic fields in the EU 27", fig.asp = 1, fig.width = 7}
+plot_field + theme(plot.title = element_blank(), plot.subtitle = element_blank())
+```
+
+Figure \@ref(fig:gender) compares AI exposure across fields of education by gender in the EU27, showing a mixed pattern. Overall, women tend to have higher AI exposure scores than men in several knowledge-based and professional fields, including business and administration (1.95 vs. 1.8), mathematics and statistics (1.28 vs. 0.9), and law (1.5 vs. 1.37). They also show greater exposure in biological sciences, engineering trades, and humanities and languages, suggesting that women’s concentration in cognitively and communicatively oriented disciplines aligns with higher relative AI exposure. Conversely, men’s exposure is higher in traditionally male-dominated or technical areas such as journalism and information (1.8 vs. 1.12), social sciences (1.19 vs. 0.69), and physical sciences (0.1 vs. –0.49). Both genders show similar exposure in ICTs (1.06), highlighting parity in this domain. At the lower end, manual, agricultural, and service-related fields (e.g., manufacturing, forestry, agriculture, and personal or hygiene services) show markedly negative exposure for both genders, though men generally score slightly higher. Overall, the results suggest that AI exposure is relatively greater for women within high-skill, analytical, and professional fields, while men remain more exposed in information-driven and physical sciences.
+
+```{r gender, fig.cap = "Generative AI exposure across genders in the EU 27", fig.asp = 1, fig.width = 7}
+plot_sex + theme(plot.title = element_blank(), plot.subtitle = element_blank())
+```
+

@@ -1,0 +1,22 @@
+---
+colorlinks: true
+link-citations: yes
+bibliography: [refs.bib]
+---
+
+# Introduction
+
+The rapid development and deployment of generative artificial intelligence (GenAI) brings significant implications for innovation, productivity, and societal change [@abendrothdias2025generative]. By automating and augmenting a wide range of cognitive and creative tasks, GenAI is expected to change the demand for specific skills, altering the composition of occupational tasks [@agrawal2023we]. Existing research has sought to quantify these transformations at the occupational level, using measures of AI exposure to identify which jobs are most susceptible to automation or augmentation [@felten2021occupational; @tolan2021measuring; @felten2023occupational; @gmyrek2025generative], providing valuable insights to understand emerging patterns.  In the EU, for instance, occupations with higher levels of AI exposure tend to experience faster employment growth, with heterogeneous patterns across countries [@albanesi2025new]. However, less attention has been paid to how these occupational effects translate across educational fields and disciplines.
+
+Understanding how GenAI influences the relationship between education and work is crucial for guiding educational institutions in adapting curricula and training programs. By linking GenAI exposure data with educational classificiations, researchers can better identify which fields of study may face increasing automatation risks and new opportunities for human-AI complementarity. Such insights are essential for designing forward-looking education policies that ensure graduate possess the adaptive, interdisciplinary, and technological competences required in a GenAI-driven economy.  
+
+This study aims to quantify the extent to which academics fields are exposed to GenAI, based on the exposure of occupations typically performed by individuals holding tertiary degrees (ISCED 5 - 8) across the EU27. Specifically, we linked standardised occupational AI exposure scores [@gmyrek2025generative] with employment distributions across educational fields using data from the European Skills and Jobs Survey [@cedefop2021esjs]. The analysis provides a comparative ranking of educational domains according to their relative AI exposure.
+
+<!-- Literature -->
+
+In the US, surveys have shown widespread use of GenAI tools at home and work in 2024 [e.g., @conzelmann2023skills].
+
+@timmerman2025educational explores how generative AI influences postsecondary education and their students in the United States. It finds that college majors are impacted differently, with STEM-related field having higher exposure than non-STEM ons. This is consisetn with (Bick 2024) early study on adoption of gen AI at work; and Mohnen and lee 2024 on the demand for AI skills increased from math et al. 
+
+
+@grosz2022postsecondary shows that postsecondary programs respond to market shifts. 

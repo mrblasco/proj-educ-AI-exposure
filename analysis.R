@@ -20,43 +20,15 @@ opts_chunk$set(
     comment = ""
 )
 
-theme_set(theme_minimal(base_size = 13, base_family = "Helvetica"))
-theme_update(
-    plot.title.position = "plot",
-    plot.caption = element_text(size = 9, hjust = 1, color = "grey40"),
-    panel.grid.major.y = element_line(linetype = 3),
-    panel.grid.minor = element_blank(),
-    axis.text.y = element_text(size = 10),
-    axis.title = element_blank(),
-    plot.margin = margin(1, 1, 1, 1, unit = "lines"),
-    legend.position = "none"
-)
-
 src_caption <- "Source: ESJS2 dataset and Gmyrek et al. 2025"
 
-# ---- funs ---------------------------------------------
+source("R/theme.R")
+source("R/utils.R")
 
-shorten_field_b <- function(x) {
-    case_when(
-        grepl("Generic", x) ~ "Generic",
-        grepl("Arts.*humanities", x) ~ "Arts & Humanities",
-        grepl("Social sciences", x) ~ "Soc. Sci., Jour. & Inf.",
-        grepl("Business", x) ~ "Business & Law",
-        grepl("Natural sciences", x) ~ "Nat. Sci., Math & Stat",
-        grepl("^Information", x) ~ "ICTs",
-        grepl("Engineer", x) ~ "Eng., Manuf. & Const",
-        grepl("Agriculture", x) ~ "Agri., For., Fish. & Vet",
-        grepl("Services", x) ~ "Services",
-        grepl("Health", x) ~ "Health and welfare",
-        is.na(x) ~ "Unknown",
-        TRUE ~ x
-    )
-}
 
 
 # ---- data, include = FALSE ----------------------------------------
 
-job_survey <- readRDS("data/skills_survey_clean.rds")
 job_ai <- readRDS("data/scores_clean_2025.rds")
 
 job_ai <- job_ai %>%
@@ -64,6 +36,8 @@ job_ai <- job_ai %>%
         job_id = substr(job_id, 1, 2),
         job_level = nchar(job_id)
     )
+
+job_survey <- readRDS("data/skills_survey_clean.rds")
 
 job_survey <- job_survey %>%
     mutate(

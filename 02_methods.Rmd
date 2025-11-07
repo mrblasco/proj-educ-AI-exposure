@@ -1,0 +1,15 @@
+# Data and Methods
+
+## Generative AI Occupational Exposure Index
+
+We used the International Labour Organisation (ILO)'s global exposure to generative AI index [@gmyrek2025generative]. This uses task descriptions from 4-digit International Standard Classifciation of Occupations (ISCO-08) to estimate task-level occupational exposure. Measures of task-level occupational exposure are obtained by combining GPT-4 models and human annotations. Specifically, @gmyrek2025generative surveyed 1640 people on 30 000 job-related tasks from the Poland's national 6-digit classification of occupations. It then combined survey results with automatic annotations obtained by GPT-4 models.
+
+This approach to measure generative AI occupational exposure draws from pineering work by @felten2021occupational and @eloundou2024gpts, which is now established as the most common method.
+
+## European Skills and Jobs Survey (ESJS)
+
+We matched the occupational exposure with survey data from occupations for highly skilled individuals obtained from the ESJS, the second wave carried out in 2021 [@cedefop2021esjs]. This survey includes information from 46 000 adult employees from 35 countries, including all the EU Member States. The survey includes questions on sociodemographics, job characteristics,  and intial education, including the highest education degree achieve and, when applies, the field major.  Jobs are then manually coded into ISCO-08 descriptions, allowing us to match with the ILO's global generative AI occupational exposure index described above. Academic fields are coded into standard ISCED (narrow) codes.
+
+## Data Analysis 
+
+Following the approach of @timmerman2025educational, we implemented a post-stratification framework to estimate occupational generative AI exposure across academic fields. First, we used OLS regression to estimate the mean generative AI score for all professions at the ISCO-08 level 2. Next, leveraging data from ESJS, we calculated the distribution of employees within each profession by highest educational attainment and corresponding field of study (e.g., the share of computer science graduates within a given profession). We then combined these shares with the OLS-estimated scores to predict the occupational generative AI score conditional on educational background and field. Finally, we aggregated the predicted scores by differnet categories (e.g., country, academic field) to conduct cross-national and field-level analyses.
